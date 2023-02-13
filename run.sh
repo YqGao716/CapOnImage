@@ -1,0 +1,85 @@
+# Pre-train with captioning and itm tasks
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 main.py \
+  --trn_name_file /disk2/yuqing.syq/CapOnImage/public_split.large/trn_names.npy \
+  --val_name_file /disk2/yuqing.syq/CapOnImage/public_split.large/val_names.npy \
+  --anno_file /disk2/yuqing.syq/CapOnImage/annotation.large/ref_captions.json \
+  --word2int_file /disk2/yuqing.syq/CapOnImage/annotation.large/word2int.json \
+  --int2word_file /disk2/yuqing.syq/CapOnImage/annotation.large/int2word.json \
+  --color2int_file /disk2/yuqing.syq/CapOnImage/tuwen_new/color2int.json \
+  --img_root /disk2/yuqing.syq/CapOnImage/images.large/ \
+  --vocab 6389 \
+  --max_words_in_sent 10 \
+  --max_words_in_info 60 \
+  --num_layer 6 \
+  --d_model 1024 \
+  --grid_size 8 \
+  --is_train \
+  --train_tasks cap itm \
+  --eval_tasks cap itm \
+  --optim adam_bert \
+  --warmup_steps 4000 \
+  --lr 4e-5 \
+  --lr_backbone 3e-5 \
+  --batch_size 50 \
+  --tst_batch_size 200 \
+  --val_iter 1000 \
+  --output_dir /disk2/yuqing.syq/CapOnImage/results/unify/ \
+  --world-size 8
+
+# Fine-tune with captioning and color prediction tasks
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 main.py \
+  --trn_name_file /disk2/yuqing.syq/CapOnImage/tuwen_new/trn_names.npy \
+  --val_name_file /disk2/yuqing.syq/CapOnImage/tuwen_new/val_names.npy \
+  --anno_file /disk2/yuqing.syq/CapOnImage/tuwen_new/ref_captions.json \
+  --word2int_file /disk2/yuqing.syq/CapOnImage/annotation.large/word2int.json \
+  --int2word_file /disk2/yuqing.syq/CapOnImage/annotation.large/int2word.json \
+  --color2int_file /disk2/yuqing.syq/CapOnImage/tuwen_new/color2int.json \
+  --img_root /disk2/yuqing.syq/CapOnImage/tuwen_imgs/ \
+  --vocab 6389 \
+  --max_words_in_sent 10 \
+  --max_words_in_info 60 \
+  --num_layer 6 \
+  --d_model 1024 \
+  --grid_size 8 \
+  --is_train \
+  --is_finetune \
+  --resume_file /disk2/yuqing.syq/CapOnImage/results/unify/model/step.*.th \
+  --train_tasks cap color \
+  --eval_tasks cap color \
+  --optim adam \
+  --warmup_steps 4000 \
+  --lr 4e-5 \
+  --lr_backbone 3e-5 \
+  --batch_size 50 \
+  --tst_batch_size 200 \
+  --val_iter 1000 \
+  --output_dir /disk2/yuqing.syq/CapOnImage/results/unify/color/ \
+  --world-size 8
+
+# Inference
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 main.py \
+  --trn_name_file /disk2/yuqing.syq/CapOnImage/tuwen_new/trn_names.npy \
+  --val_name_file /disk2/yuqing.syq/CapOnImage/tuwen_new/val_names.npy \
+  --anno_file /disk2/yuqing.syq/CapOnImage/tuwen_new/ref_captions.json \
+  --word2int_file /disk2/yuqing.syq/CapOnImage/annotation.large/word2int.json \
+  --int2word_file /disk2/yuqing.syq/CapOnImage/annotation.large/int2word.json \
+  --color2int_file /disk2/yuqing.syq/CapOnImage/tuwen_new/color2int.json \
+  --img_root /disk2/yuqing.syq/CapOnImage/tuwen_imgs/ \
+  --vocab 6389 \
+  --max_words_in_sent 10 \
+  --max_words_in_info 60 \
+  --num_layer 6 \
+  --d_model 1024 \
+  --grid_size 8 \
+  --resume_file /disk2/yuqing.syq/CapOnImage/results/unify/color/model/step.98000.th \
+  --train_tasks cap color \
+  --eval_tasks cap color \
+  --optim adam \
+  --warmup_steps 4000 \
+  --lr 4e-5 \
+  --lr_backbone 3e-5 \
+  --batch_size 50 \
+  --tst_batch_size 200 \
+  --val_iter 1000 \
+  --output_dir /disk2/yuqing.syq/CapOnImage/results/unify/color/ \
+  --world-size 8
